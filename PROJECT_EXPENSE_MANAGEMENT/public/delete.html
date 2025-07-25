@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Display Expenses</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f9f9f9;
+      color: #333;
+      line-height: 1.6;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #2c3e50;
+    }
+
+    nav {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    nav button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      background-color: #3498db;
+      color: #fff;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    nav button:hover {
+      background-color: #2980b9;
+    }
+
+    #expenses-section {
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    #full-expenses-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    #full-expenses-table th, #full-expenses-table td {
+      padding: 10px;
+      text-align: left;
+      border: 1px solid #ddd;
+    }
+
+    #full-expenses-table th {
+      background-color: #f4f4f4;
+    }
+
+    .delete-btn {
+      background-color: #e74c3c;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .delete-btn:hover {
+      background-color: #c0392b;
+    }
+  </style>
+</head>
+<body>
+  <h1>Expenses List</h1>
+  <nav>
+    <button onclick="window.location.href='inter.html'">Back to Dashboard</button>
+  </nav>
+  
+  <div id="expenses-section">
+    <h2>Expenses List</h2>
+    <table id="full-expenses-table">
+      <thead>
+        <tr>
+          <th>Description</th>
+          <th>Amount</th>
+          <th>Expense Date</th>
+          <th>Category</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Full expenses list will be dynamically populated here -->
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    // Function to delete an expense
+    function deleteExpense(expenseId) {
+      fetch(`/delete-expense/${expenseId}`, { method: 'DELETE' })
+        .then(response => response.text())
+        .then(message => {
+          console.log(message);
+          loadExpenses(); 
+        })
+        .catch(error => {
+          console.error('Error:', error);
+        });
+    }
+
+  
+    function loadExpenses() {
+      const user_id = sessionStorage.getItem('user_id');
+      fetch(`http://localhost:3000/get-expenses/${user_id}`)
+        .then(response => response.json())
+        .then(data => {
+          const tableBody = document.querySelector('#full-expenses-table tbody');
+          tableBody.innerHTML = '';
+          
+          data.forEach(expense => {
+            const row = tableBody.insertRow();
+            row.innerHTML = `
+              <td>${expense.description}</td>
+              <td>${expense.amount}</td>
+              <td>${expense.expense_date}</td>
+              <td>${expense.category_name}</td>
+              <td><button class="delete-btn" onclick="deleteExpense(${expense.expenses_id})">Delete</button></td>
+            `;
+          });
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('Error fetching expenses.');
+        });
+    }
+
+   
+    window.onload = loadExpenses;
+  </script>
+</body>
+</html>

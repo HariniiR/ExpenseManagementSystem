@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Add Expense</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f9f9f9;
+        color: #333;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      h1 {
+        margin-top: 20px;
+        color: #444;
+      }
+
+      nav {
+        margin-top: 10px;
+        margin-bottom: 30px;
+      }
+
+      nav button {
+        margin: 0 10px;
+        padding: 10px 20px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 14px;
+      }
+
+      nav button:hover {
+        background-color: #0056b3;
+      }
+
+      form {
+        background-color: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        width: 300px;
+      }
+
+      form label {
+        display: block;
+        margin-top: 10px;
+        font-weight: bold;
+      }
+
+      form input,
+      form select {
+        width: 100%;
+        padding: 8px;
+        margin-top: 5px;
+        margin-bottom: 15px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 14px;
+      }
+
+      form button {
+        width: 100%;
+        padding: 10px;
+        background-color: #28a745;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+      }
+
+      form button:hover {
+        background-color: #218838;
+      }
+
+      .feedback {
+        margin-top: 15px;
+        font-size: 14px;
+        color: red;
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Add Expense</h1>
+    <nav>
+      <button id="home-btn">Home</button>
+      <button id="logout-btn">Logout</button>
+    </nav>
+
+    <form id="expense-form">
+      <label for="category_id">Category:</label>
+      <select id="category_id" name="category_id" required>
+        <option value="1">Food</option>
+        <option value="2">Transport</option>
+        <option value="3">Utilities</option>
+        <option value="4">Entertainment</option>
+        <option value="5">Healthcare</option>
+        <option value="6">Education</option>
+        <option value="7">Shopping</option>
+        <option value="8">Rent</option>
+        <option value="9">Travel</option>
+        <option value="10">Miscellaneous</option>
+      </select>
+
+      <label for="description">Description:</label>
+      <input type="text" id="description" name="description" placeholder="Enter details" required />
+
+      <label for="amount">Amount:</label>
+      <input type="number" id="amount" name="amount" placeholder="Enter amount" min="1" required />
+
+      <label for="expense_date">Date:</label>
+      <input type="date" id="expense_date" name="expense_date" required />
+
+      <button type="submit">Add Expense</button>
+      <p class="feedback" id="error-feedback"></p>
+    </form>
+
+    <script>
+      document.getElementById('home-btn').addEventListener('click', function () {
+        window.location.href = 'inter.html';
+      });
+
+      document.getElementById('logout-btn').addEventListener('click', function () {
+        if (confirm('Are you sure you want to logout?')) {
+          fetch('http://localhost:3000/logout', {
+            method: 'POST',
+          })
+            .then(response => {
+              if (!response.ok) {
+                throw new Error('Logout failed');
+              }
+              return response.text();
+            })
+            .then(() => {
+              sessionStorage.clear();
+              window.location.href = 'home.html';
+            })
+            .catch(error => {
+              console.error('Error:', error);
+              alert('Logout failed: ' + error.message);
+            });
+        }
+      });
+
+      document.getElementById('expense-form').addEventListener('submit', function (event) {
+        event.preventDefault();
+
+        const user_id = sessionStorage.getItem('user_id');
+        if (!user_id) {
+          const errorFeedback = document.getElementById('error-feedback');
+          errorFeedback.textContent = 'User not logged in. Please log in again.';
+          errorFeedback.style.display = 'block';
+          window.location.href = 'home.html';
+          return;
+        }
+
+        const category_id = document.getElementById('category_id').value;
+        const description = document.getElementById('description').value;
+        const amount = parseFloat(document.getElementById('amount').value);
+        const expense_date = document.getElementById('expense_date').value;
+
+        if (isNaN(amount) || amount <= 0) {
+          const errorFeedback = document.getElementById('error-feedback');
+          errorFeedback.textContent = 'Please enter a valid amount greater than 0.';
+          errorFeedback.style.display = 'block';
+          return;
+        }
+
+        const expenseData = {
+          user_id,
+          category_id,
+          description,
+          amount,
+          expense_date,
+        };
+
+        fetch('http://localhost:3000/add-expense', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(expenseData),
+        })
+          .then(response => {
+            if (!response.ok) {
+              throw new Error('Failed to add expense');
+            }
+            return response.json();
+          })
+          .then(data => {
+            if (data.success) {
+              alert('Expense added successfully');
+              document.getElementById('category_id').value = '';
+            document.getElementById('description').value = '';
+            document.getElementById('amount').value = '';
+            document.getElementById('expense_date').value = '';
+             // window.location.href = 'inter.html';
+            } else {
+              alert('Error adding expense: ' + (data.message || 'Please try again.'));
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            //alert('An error occurred while adding the expense: ' + error.message);
+          });
+      });
+    </script>
+  </body>
+</html>

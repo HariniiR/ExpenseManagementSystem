@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Expense Management</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@700&display=swap');
+
+    body {
+      font-family: 'Arial', sans-serif;
+      background: url('/background.png') no-repeat center fixed ;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+
+    .logo {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .logo img {
+      width: 50px;
+    }
+
+    h2 {
+      color: #000;
+      font-family: 'Roboto', sans-serif;
+      margin-bottom: 20px;
+    }
+
+    h3 {
+      color: #000;
+    }
+
+    nav {
+      margin-bottom: 20px;
+    }
+
+    button {
+      padding: 10px 20px;
+      margin: 10px;
+      border: none;
+      background-color: #007bff;
+      color: white;
+      cursor: pointer;
+      border-radius: 5px;
+      font-size: 16px;
+      box-shadow: 0 5px 15px rgba(0, 123, 255, 0.4);
+      transition: background-color 0.3s, transform 0.3s;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+      transform: scale(1.05);
+    }
+
+    form {
+      background-color: #f7f7f7;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      max-width: 400px;
+      width: 100%;
+      margin: 20px 0;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: bold;
+      color: #000;
+    }
+
+    input[type="text"], input[type="email"], input[type="password"], input[type="number"] {
+      width: calc(100% - 20px);
+      padding: 8px 10px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 14px;
+    }
+
+    p {
+      text-align: center;
+      color: #000;
+    }
+
+    a {
+      color: #007bff;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    .card {
+      background: #f7f7f7;
+      padding: 2rem;
+      margin: 1rem;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      transition: box-shadow 0.3s;
+    }
+
+    .card:hover {
+      box-shadow: 0 5px 25px rgba(0, 0, 0, 0.2);
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .footer {
+      text-align: center;
+      padding: 10px;
+      margin-top: 20px;
+      border-top: 1px solid #ddd;
+      color: #777;
+    }
+  </style>
+</head>
+<body>
+  
+
+  <h1 style="font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;">Expenses Manager</h1>
+  <p>Expenses management made easier!</p>
+
+  <!-- Buttons to Show Forms -->
+  <nav id="nav-buttons">
+    <button id="login-btn" onclick="showLoginForm()">Login</button>
+    <button id="signup-btn" onclick="showSignupForm()">Sign Up</button>
+  </nav>
+
+  <!-- Login Form -->
+  <div id="login-form-container" class="card" style="display: none;">
+    <div class="header">
+      <h3>Login</h3>
+    </div>
+    <form id="login-form">
+      <label for="login-email">Email:</label>
+      <input type="email" id="login-email" required>
+      <label for="login-password">Password:</label>
+      <input type="password" id="login-password" required>
+      <button type="submit">Login</button>
+    </form>
+    <p>Don't have an account? <a href="javascript:void(0);" onclick="showSignupForm()">Sign up here</a></p>
+  </div>
+
+  <!-- Sign Up Form -->
+  <div id="signup-form-container" class="card" style="display: none;">
+    <div class="header">
+      <h3>Sign Up</h3>
+    </div>
+    <form id="signup-form">
+      <label for="signup-username">Username:</label>
+      <input type="text" id="signup-username" required>
+      <label for="signup-email">Email:</label>
+      <input type="email" id="signup-email" required>
+      <label for="signup-phone">Phone Number:</label>
+      <input type="text" id="signup-phone" required>
+      <label for="signup-budget">Budget:</label>
+      <input type="number" id="signup-budget" required>
+      <label for="signup-password">Password:</label>
+      <input type="password" id="signup-password" required>
+      <button type="submit">Sign Up</button>
+    </form>
+    <p>Already have an account? <a href="javascript:void(0);" onclick="showLoginForm()">Login here</a></p>
+  </div>
+
+  <script>
+  
+    function showLoginForm() {
+      document.getElementById("login-form-container").style.display = "block";
+      document.getElementById("signup-form-container").style.display = "none";
+      document.getElementById("nav-buttons").style.display = "none";
+    }
+
+   
+    function showSignupForm() {
+      document.getElementById("signup-form-container").style.display = "block";
+      document.getElementById("login-form-container").style.display = "none";
+      document.getElementById("nav-buttons").style.display = "none";
+    }
+
+  
+    document.getElementById('login-form').addEventListener('submit', function(event) {
+      event.preventDefault();
+      const email = document.getElementById('login-email').value;
+      const password = document.getElementById('login-password').value;
+
+      fetch('http://localhost:3000/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ user_emailID: email, pword: password }),
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.message === 'Login successful') {
+          sessionStorage.setItem('user_id', data.user.user_id);
+          window.location.href = 'inter.html';
+        } else {
+          alert('Login failed: ' + (data.message || 'Please try again.'));
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('Error logging in: ' + error.message);
+      });
+    });
+
+    
+    document.getElementById('signup-form').addEventListener('submit', function(event) {
+      event.preventDefault();
+
+      const username = document.getElementById('signup-username').value;
+      const email = document.getElementById('signup-email').value;
+      const phone = document.getElementById('signup-phone').value;
+      const budget = document.getElementById('signup-budget').value;
+      const password = document.getElementById('signup-password').value;
+
+      fetch('http://localhost:3000/register', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          user_name: username,
+          user_emailID: email,
+          user_phoneNo: phone,
+          budget: budget,
+          pword: password
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.message === 'User registered successfully') {
+          sessionStorage.setItem('user_id', data.user_id);
+          sessionStorage.setItem('user_name', data.user.user_name);
+          sessionStorage.setItem('user_email', data.user.user_emailID);
+          window.location.href = 'inter.html';
+        } else {
+          alert('Error signing up: ' + (data.message || 'Please try again.'));
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        //alert('Sign up failed: ' + error.message);
+      });
+    });
+  </script>
+
+  <div class="footer">
+    <p>&copy; 2024 Expense Management Inc.</p>
+  </div>
+</body>
+</html>

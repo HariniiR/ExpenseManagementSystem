@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Expense Management Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    /* Previous styles remain the same until #report-section */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f9f9f9;
+      color: #333;
+      line-height: 1.6;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #2c3e50;
+    }
+
+    nav {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    nav button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      background-color: #3498db;
+      color: #fff;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    nav button:hover {
+      background-color: #2980b9;
+    }
+    #report-section {
+      display: none;
+      flex-direction: column;
+      gap: 30px;
+      background: #fff;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      margin-bottom: 30px;
+    }
+    
+    .report-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    
+    .report-header h2 {
+      color: #2c3e50;
+      font-size: 24px;
+      margin: 0;
+    }
+    
+    .report-content {
+      display: flex;
+      gap: 30px;
+    }
+    
+    .chart-container {
+      flex: 1;
+      background: #f8fafc;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      min-height: 400px;
+    }
+    
+    .details-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    
+    .table-container {
+      background: #f8fafc;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    
+    #expenses-table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 600px;
+    }
+    
+    #expenses-table th {
+      background-color: #3498db;
+      color: white;
+      padding: 12px 15px;
+      text-align: left;
+    }
+    
+    #expenses-table td {
+      padding: 10px 15px;
+      border-bottom: 1px solid #e0e6ed;
+    }
+    
+    #expenses-table tr:nth-child(even) {
+      background-color: #f8fafc;
+    }
+    
+    #expenses-table tr:hover {
+      background-color: #f1f5f9;
+    }
+    
+    .budget-summary {
+      background: #f8fafc;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+    
+    .budget-summary h3 {
+      color: #2c3e50;
+      margin-top: 0;
+      margin-bottom: 15px;
+      font-size: 18px;
+    }
+    
+    .budget-stats {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 15px;
+    }
+    
+    .stat-card {
+      flex: 1;
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    }
+    
+    .stat-card h4 {
+      margin: 0 0 5px 0;
+      color: #7f8c8d;
+      font-size: 14px;
+    }
+    
+    .stat-card p {
+      margin: 0;
+      font-size: 20px;
+      font-weight: bold;
+      color: #2c3e50;
+    }
+    
+    .budget-progress {
+      margin-top: 20px;
+    }
+    
+    .progress-bar {
+      height: 10px;
+      background: #ecf0f1;
+      border-radius: 5px;
+      overflow: hidden;
+      margin-bottom: 5px;
+    }
+    
+    .progress-fill {
+      height: 100%;
+      background: #27ae60;
+      width: 0%;
+      transition: width 0.5s ease;
+    }
+    
+    .progress-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: #7f8c8d;
+    }
+    
+    /* Add this to your existing button styles */
+    .print-btn {
+      background-color: #7f8c8d;
+      padding: 8px 15px;
+      border: none;
+      border-radius: 5px;
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    
+    .print-btn:hover {
+      background-color: #95a5a6;
+    }
+    /* Responsive Styles */
+@media (max-width: 1200px) {
+  .report-content {
+    flex-direction: column;
+  }
+  
+  .chart-container, 
+  .details-container {
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  body {
+    padding: 10px;
+  }
+  
+  nav {
+    flex-wrap: wrap;
+  }
+  
+  nav button {
+    flex: 1 1 150px;
+    margin-bottom: 10px;
+  }
+  
+  .budget-stats {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .stat-card {
+    width: 100%;
+  }
+  
+  #expenses-table {
+    font-size: 14px;
+  }
+  
+  #expenses-table th, 
+  #expenses-table td {
+    padding: 8px 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  h1 {
+    font-size: 24px;
+  }
+  
+  .report-header h2 {
+    font-size: 20px;
+  }
+  
+  .chart-container, 
+  .table-container, 
+  .budget-summary {
+    padding: 15px;
+  }
+  
+  #expenses-table {
+    font-size: 12px;
+  }
+}
+  </style>
+</head>
+<body>
+  <!-- Previous HTML remains the same until report-section -->
+  <h1>Expense Management Dashboard</h1>
+  <nav>
+    <button id="add-expense-btn">Add Expenses</button>
+    <button id="generate-report-btn">Generate Report</button>
+    <button id="update-profile-btn">Update Profile</button>
+    <button onclick="window.location.href='delete.html'">Display expenses</button>
+    <button id="logout-btn">Logout</button>
+  </nav>
+
+  <div id="report-section">
+    <div class="report-header">
+      <h2>Expense Analysis Report</h2>
+      <button class="print-btn" onclick="window.print()">Print Report</button>
+    </div>
+    
+    <div class="report-content">
+      <div class="chart-container">
+        <canvas id="expensesChart"></canvas>
+      </div>
+      
+      <div class="details-container">
+        <div class="budget-summary">
+          <h3>Budget Overview</h3>
+          <div class="budget-stats">
+            <div class="stat-card">
+              <h4>Total Budget</h4>
+              <p id="total-budget">$0.00</p>
+            </div>
+            <div class="stat-card">
+              <h4>Total Spent</h4>
+              <p id="total-spent">$0.00</p>
+            </div>
+            <div class="stat-card">
+              <h4>Remaining</h4>
+              <p id="remaining-budget">$0.00</p>
+            </div>
+          </div>
+          
+          <div class="budget-progress">
+            <div class="progress-bar">
+              <div class="progress-fill" id="budget-progress"></div>
+            </div>
+            <div class="progress-labels">
+              <span>0%</span>
+              <span>50%</span>
+              <span>100%</span>
+            </div>
+          </div>
+          
+          <div id="budget-report" class="report-text" style="margin-top: 20px;"></div>
+        </div>
+        
+        <div class="table-container">
+          <h3>Recent Transactions</h3>
+          <table id="expenses-table">
+            <thead>
+              <tr>
+                <th>Description</th>
+                <th>Amount</th>
+                <th>Date</th>
+                <th>Category</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Expenses will be dynamically populated here -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+<div class="report-container"> 
+    <!-- /*<h3>Budget vs Total Expenses</h3>*/ -->
+     <h5 id="budget-report" class="report-text"></h5> </div>
+</div>
+</div>
+  <div id="profile-section" style="display: none;">
+    <h2>Update Profile</h2>
+    <form id="update-profile-form">
+      <label for="profile-username">Username</label>
+      <input type="text" id="profile-username" required>
+      
+      <label for="profile-email">Email</label>
+      <input type="email" id="profile-email" required>
+      
+      <label for="profile-phone">Phone Number</label>
+      <input type="text" id="profile-phone" required>
+      
+      <label for="profile-budget">Budget</label>
+      <input type="number" id="profile-budget" required>
+      
+      <button type="submit">Update Profile</button>
+    </form>
+  </div>
+  <!-- Rest of your HTML remains the same -->
+
+  <script>
+    // Update your generate-report-btn event listener to populate the new elements
+    document.getElementById('generate-report-btn').addEventListener('click', () => {
+      const user_id = sessionStorage.getItem('user_id');
+      fetch(`http://localhost:3000/get-expenses/${user_id}`)
+        .then(response => response.json())
+        .then(data => {
+          // Populate table
+          const tableBody = document.querySelector('#expenses-table tbody');
+          tableBody.innerHTML = '';
+          const categories = {};
+          let totalSpent = 0;
+
+          data.forEach(expense => {
+            const row = tableBody.insertRow();
+            row.innerHTML = `
+              <td>${expense.description}</td>
+              <td>$${expense.amount.toFixed(2)}</td>
+              <td>${new Date(expense.expense_date).toLocaleDateString()}</td>
+              <td>${expense.category_name}</td>
+            `;
+            
+            categories[expense.category_name] = (categories[expense.category_name] || 0) + expense.amount;
+            totalSpent += expense.amount;
+          });
+
+          // Create chart
+          const ctx = document.getElementById('expensesChart').getContext('2d');
+          new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+              labels: Object.keys(categories),
+              datasets: [{
+                data: Object.values(categories),
+                backgroundColor: [
+                  '#3498db', '#e74c3c', '#2ecc71', '#f39c12', 
+                  '#9b59b6', '#1abc9c', '#d35400', '#34495e'
+                ],
+                borderWidth: 1
+              }]
+            },
+            options: {
+              responsive: true,
+              plugins: {
+                legend: {
+                  position: 'right',
+                },
+                title: {
+                  display: true,
+                  text: 'Expense Distribution',
+                  font: {
+                    size: 16
+                  }
+                }
+              },
+              cutout: '60%'
+            }
+          });
+
+          // Fetch and display budget report
+          fetch(`http://localhost:3000/generate_expense_report/${user_id}`)
+            .then(response => response.text())
+            .then(report => {
+              document.getElementById('budget-report').textContent = report;
+              
+              // Extract budget data from report (assuming format "Budget: X, Total Expenses: Y")
+              const budgetMatch = report.match(/Budget: \$?([0-9.]+)/);
+              const expensesMatch = report.match(/Total Expenses: \$?([0-9.]+)/);
+              
+              if (budgetMatch && expensesMatch) {
+                const budget = parseFloat(budgetMatch[1]);
+                const expenses = parseFloat(expensesMatch[1]);
+                const remaining = budget - expenses;
+                const percentage = (expenses / budget) * 100;
+                
+                // Update budget summary
+                document.getElementById('total-budget').textContent = `$${budget.toFixed(2)}`;
+                document.getElementById('total-spent').textContent = `$${expenses.toFixed(2)}`;
+                document.getElementById('remaining-budget').textContent = `$${remaining.toFixed(2)}`;
+                document.getElementById('budget-progress').style.width = `${Math.min(percentage, 100)}%`;
+                
+                
+                // Change progress bar color based on percentage
+                const progressFill = document.getElementById('budget-progress');
+                if (percentage > 75) {
+                  progressFill.style.background = '#e74c3c'; // Red
+                } else if (percentage > 50) {
+                  progressFill.style.background = '#f39c12'; // Orange
+                } else {
+                  progressFill.style.background = '#2ecc71'; // Green
+                }
+              }
+              
+              document.getElementById('report-section').style.display = 'block';
+            })
+            .catch(error => {
+              console.error('Error:', error);
+              alert('Error fetching budget report.');
+            });
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('Error fetching expenses report.');
+        });
+    });
+    document.getElementById('add-expense-btn').addEventListener('click', () => {
+      window.location.href = 'form.html';
+    });
+
+    document.getElementById('logout-btn').addEventListener('click', () => {
+      fetch(`http://localhost:3000/logout`, { method: 'POST' })
+        .then(response => {
+          if (!response.ok) throw new Error('Logout failed');
+          return response.text();
+        })
+        .then(() => {
+          sessionStorage.clear();
+          window.location.href = 'home.html';
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('Logout failed: ' + error.message);
+        });
+    });
+
+    document.getElementById('update-profile-btn').addEventListener('click', () => {
+      document.getElementById('profile-section').style.display = 'block';
+      document.getElementById('report-section').style.display = 'none';
+      const user_id = sessionStorage.getItem('user_id');
+  fetch(`http://localhost:3000/get-user-profile/${user_id}`)
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Failed to fetch user profile');
+      }
+      return response.json();
+    })
+    .then(user => {
+      console.log('User data received:', user); // Add this line
+      document.getElementById('profile-username').value = user.user_name || '';
+      const emailField = document.getElementById('profile-email');
+    const phoneField = document.getElementById('profile-phone');
+    
+   // emailField.setAttribute('value', user.user_emailID);
+    emailField.value = user.user_emailid;
+    
+   // phoneField.setAttribute('value', user.user_phoneno);
+    phoneField.value = user.user_phoneno;
+    emailField.dispatchEvent(new Event('change'));
+    phoneField.dispatchEvent(new Event('change'));
+      document.getElementById('profile-budget').value = user.budget||0;
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert('Error fetching user profile: ' + error.message);
+    });
+    });
+    document.getElementById('update-profile-form').addEventListener('submit', event => {
+      event.preventDefault();
+      const user_id = sessionStorage.getItem('user_id');
+      const profileData = {
+        user_name: document.getElementById('profile-username').value,
+        user_emailID: document.getElementById('profile-email').value,
+        user_phoneNo: document.getElementById('profile-phone').value,
+        budget: document.getElementById('profile-budget').value
+      };
+
+      fetch(`http://localhost:3000/update-profile/${user_id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(profileData)
+      })
+        .then(response => response.json())
+        .then(() => {
+          alert('Profile updated successfully!');
+          document.getElementById('profile-section').style.display = 'none';
+        })
+        .catch(error => {
+          console.error('Error:', error);
+         // alert('Error updating profile: ' + error.message);
+        });
+    });
+
+
+    // Rest of your JavaScript remains the same
+  </script>
+</body>
+</html>
